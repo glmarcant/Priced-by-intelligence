@@ -216,3 +216,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Data files and model artifacts (not to be published)
+data/raw/
+data/processed/
+*.pkl
+*.csv
