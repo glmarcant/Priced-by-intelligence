@@ -177,8 +177,8 @@ pip install -r requirements.txt
 
 Run the notebooks in this order:
 
-1. `data_cleaning_aapl.ipynb` and `data_cleaning_spx.ipynb`
-2. `data_quality_check.ipynb`
+1. `data_quality_check.ipynb`
+2. `data_cleaning_aapl.ipynb` and `data_cleaning_spx.ipynb`
 3. `modeling_aapl.ipynb` and `modeling_spx.ipynb`
 4. `modeling_nn_aapl.ipynb` and `modeling_nn_spx.ipynb`
 5. `extrapolation_chart_aapl.ipynb` and `robustness_aapl.ipynb`
