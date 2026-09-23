@@ -1,7 +1,7 @@
 # Beyond Black-Scholes: Pricing Options in the Age of AI
 
 Bachelor thesis, BSc in Economics, Management and Computer Science (BEMACS), Bocconi University.
-Author: Giulia Marcantonio. Supervisor: _.
+Author: Giulia Marcantonio. Supervisor: Prof. Rotondi.
 
 This repository contains the code for an empirical comparison between the Black-Scholes model and two machine-learning approaches, gradient-boosted trees (XGBoost) and a feed-forward neural network, for pricing European and American call options on AAPL and on the S&P 500 index (SPX).
 
@@ -41,7 +41,41 @@ The cleaning notebooks write the processed datasets to `data/processed/`.
 
 **Option prices** (`AAPL_options_prices.csv`, `SPX_options_prices.csv`)
 
-<!-- TODO: add the columns of the option price files -->
+| Column | Description |
+|---|---|
+| `secid` | OptionMetrics identifier of the underlying security |
+| `date` | Trading date of the quote |
+| `symbol` | Option symbol |
+| `symbol_flag` | Symbol format flag (0 = old format, 1 = OSI format) |
+| `exdate` | Expiration date |
+| `last_date` | Date of the last trade in the contract |
+| `cp_flag` | Option type: C = call, P = put (only calls are kept) |
+| `strike_price` | Strike price multiplied by 1000 (divided by 1000 before use) |
+| `best_bid` | Best closing bid across exchanges |
+| `best_offer` | Best closing offer across exchanges |
+| `volume` | Daily contract volume |
+| `open_interest` | Open interest |
+| `impl_volatility` | Implied volatility computed by OptionMetrics (not used as an input, to avoid leakage) |
+| `delta`, `gamma`, `vega`, `theta` | Greeks computed by OptionMetrics (not used as inputs, to avoid leakage) |
+| `optionid` | Unique OptionMetrics identifier of the option contract |
+| `cfadj` | Cumulative adjustment factor of the option, for splits and other corporate actions |
+| `am_settlement` | 1 if the option is AM-settled (settlement based on opening prices on expiration day), 0 if PM-settled |
+| `contract_size` | Number of units of the underlying per contract |
+| `ss_flag` | Settlement flag: 0 = standard settlement, 1 = non-standard settlement (e.g. after a corporate action), E = non-standard expiration date |
+| `forward_price` | Forward price of the underlying computed by OptionMetrics |
+| `expiry_indicator` | Expiration type: blank = standard monthly, w = weekly, d = daily, m = end of month |
+| `root`, `suffix` | Root and suffix of the option symbol |
+| `cusip` | CUSIP of the underlying |
+| `ticker` | Ticker of the underlying |
+| `sic` | SIC industry code of the underlying |
+| `index_flag` | 1 if the underlying is an index, 0 otherwise |
+| `exchange_d` | Exchange designator of the underlying |
+| `class` | Class designator of the underlying |
+| `issue_type` | Type of security of the underlying (e.g. common stock, index) |
+| `industry_group` | Industry group of the underlying |
+| `issuer` | Name of the underlying security's issuer |
+| `div_convention` | Dividend convention used by OptionMetrics for the underlying |
+| `exercise_style` | Exercise style: A = American, E = European |
 
 **Security prices** (`AAPL_security_prices.csv`, `SPX_security_prices.csv`), daily
 
@@ -60,15 +94,18 @@ The cleaning notebooks write the processed datasets to `data/processed/`.
 | Column | Description |
 |---|---|
 | `secid` | OptionMetrics security identifier |
-| `record_date`, `ex_date` | Record date and ex-dividend date |
-| `amount` | Dividend per share, in USD |
-| `adj_factor` | Adjustment factor |
-| `distr_type` | Distribution type code (regular cash dividend) |
-| `frequency` | Payment frequency code (quarterly) |
-| `currency` | Currency of the payment |
-| `approx_flag`, `cancel_flag`, `liquid_flag` | OptionMetrics data-quality flags |
+| `record_date` | Date on which the company takes a snapshot of the shareholder registry to determine who receives the payment. Not used in the analysis |
+| `ex_date` | Ex-dividend date: from this day, a buyer of the stock is no longer entitled to the dividend and the stock trades without it |
+| `amount` | Dollar amount of the cash distribution if the dividend has been announced; projected yield if the dividend is a projection (`distr_type` = %) |
+| `adj_factor` | Adjustment to the security's price required to compare pre-distribution and post-distribution prices |
+| `distr_type` | Type of distribution: 0 = unknown or not yet classified, 1 = regular dividend, 2 = split, 3 = stock dividend, 4 = capital gain distribution, 5 = special dividend, 6 = spin-off, 7 = new equity issue, 8 = rights offering, 9 = warrants issue, % = regular dividend projection |
+| `frequency` | Payment frequency: 0 = dividend omitted, 1 = annual, 2 = semiannual, 3 = quarterly, 4 = monthly, 5 = frequency varies, blank = not available. Used to annualise the dividend |
+| `currency` | ISO code of the currency of the distribution |
+| `approx_flag` | 0 = amount is exact, 1 = amount is approximate. Quality check only |
+| `cancel_flag` | 0 = distribution made as scheduled, 1 = distribution cancelled or regular payment omitted. Rows with 1 are excluded |
+| `liquid_flag` | 0 = non-liquidating distribution, 1 = partial or total liquidating distribution. Rows with 1 are excluded |
 
-The file contains individual quarterly payments, not a yield. The annual dividend yield q is computed from these payments in the cleaning notebook.
+The file contains individual payments, not a yield. The annual dividend yield q is computed from these payments in the cleaning notebook. In the sample (20 payments, November 2020 to August 2025), every row is a regular quarterly cash dividend in USD (`distr_type` = 1, `frequency` = 3) with all three flags equal to 0, so the filters on `cancel_flag` and `liquid_flag` do not remove any observation and no projected dividends are present.
 
 **SPX dividend yield** (`SPX_dividend_yield.csv`), daily
 
@@ -113,9 +150,9 @@ The file contains individual quarterly payments, not a yield. The annual dividen
 
 | File | Content |
 |---|---|
+| `data_quality_check.ipynb` | First inspection of the raw datasets before processing |
 | `data_cleaning_aapl.ipynb` | Cleaning and merging of AAPL raw tables into `data/processed/AAPL_cleaned.csv` |
 | `data_cleaning_spx.ipynb` | Cleaning and merging of SPX raw tables into `data/processed/SPX_cleaned.csv` |
-| `data_quality_check.ipynb` | Checks on the processed datasets |
 | `modeling_aapl.ipynb` | Black-Scholes and XGBoost on AAPL: cross-validation, test evaluation, moneyness analysis |
 | `modeling_spx.ipynb` | Black-Scholes and XGBoost on SPX: cross-validation, test evaluation, moneyness analysis |
 | `modeling_nn_aapl.ipynb`, `modeling_nn_spx.ipynb` | Neural network experiments |
@@ -153,4 +190,4 @@ Run the notebooks in this order:
 - Hutchinson, J. M., Lo, A. W. and Poggio, T. (1994). A nonparametric approach to pricing and hedging derivative securities via learning networks. *Journal of Finance*.
 - Garcia, R. and Gençay, R. (2000). Pricing and hedging derivative securities with neural networks and a homogeneity hint. *Journal of Econometrics*.
 - Ruf, J. and Wang, W. (2020). Neural networks for option pricing and hedging: a literature review. *Journal of Computational Finance*.
-- Ruf, J. and Wang, W. (2021). Information leakage in backtesting. SSRN working paper.leakage in backtesting. SSRN working paper.
+- Ruf, J. and Wang, W. (2021). Information leakage in backtesting. SSRN working paper.
