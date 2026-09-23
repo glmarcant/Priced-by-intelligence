@@ -222,3 +222,7 @@ data/raw/
 data/processed/
 *.pkl
 *.csv
+
+# Attempts not relevant for thesis
+modeling_nn_aapl.ipynb
+modeling_nn_spx.ipynb
